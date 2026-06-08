@@ -419,14 +419,18 @@
     }, 2500); // 少し早めに消えるよう調整
   }
 
-  document.getElementById('btnFullscreen').addEventListener('click', () => {
-    if (input.value.trim() === '') return; // 空のときは全画面にしない
+ document.getElementById('btnFullscreen').addEventListener('click', () => {
+    if (input.value.trim() === '') return; // 空のときは何もしない
     fullPreview.innerHTML = preview.innerHTML;
     fullPreview.style.fontSize = currentSize;
+    fullPreview.style.height = `calc(100dvh - 40px)`;
     overlay.classList.add('active');
     
-    // 縦書きの開始位置（右端）にスクロールをリセット
-    setTimeout(() => { overlay.scrollLeft = overlay.scrollWidth; }, 50);
+    // 【ここを修正】表示された直後、強制的に一番右端（文頭）へスクロールさせる
+    setTimeout(() => { 
+      overlay.scrollLeft = overlay.scrollWidth - overlay.clientWidth; 
+    }, 10);
+    
     showClose();
   });
 
