@@ -388,16 +388,28 @@
   }
 
   // PCでのダブルクリック、スマホでのダブルタップで閉じる
-  let lastTap = 0;
-  const handleDoubleTap = (e) => {
+ let lastTap = 0;
+  
+  // PCでのダブルクリックで閉じる
+  overlay.addEventListener('dblclick', (e) => {
+    closeFullscreen();
+  });
+
+  // スマホ（iPhone）での確実なダブルタップ判定
+  overlay.addEventListener('touchend', (e) => {
+    // スクロール中（2本以上の指での操作など）は除外
+    if (e.touches.length > 0) return;
+
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
-    if (tapLength < 300 && tapLength > 0) {
+    
+    // 判定時間を「0.25秒以内」に少し厳しくし、0秒（誤検知）は弾く
+    if (tapLength < 250 && tapLength > 40) {
       closeFullscreen();
-      e.preventDefault();
+      e.preventDefault(); // 画面のズームなどの余計な動きを止める
     }
     lastTap = currentTime;
-  };
+  });
 
   overlay.addEventListener('click', handleDoubleTap);
   overlay.addEventListener('touchend', handleDoubleTap);
