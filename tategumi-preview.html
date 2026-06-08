@@ -409,6 +409,11 @@
   document.getElementById('btnClose').addEventListener('click', () => {
     overlay.classList.remove('active');
   });
+  overlay.addEventListener('wheel', (e) => {
+    if (!overlay.classList.contains('active')) return;
+    e.preventDefault();
+    overlay.scrollLeft += e.deltaY;
+}, { passive: false });
 </script>
 </body>
 </html>
