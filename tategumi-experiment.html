@@ -121,7 +121,7 @@
     line-height: 2;
     letter-spacing: 0.08em;
     color: var(--ink);
-    height: calc(100dvh - 140px); /* ツールバー等の被りを防ぐ調整 */
+    height: calc(100dvh - 140px);
     white-space: pre-wrap;
     word-break: break-all;
     -webkit-font-feature-settings: "vert" 1;
@@ -144,7 +144,6 @@
     -webkit-overflow-scrolling: touch;
   }
   
-  /* display: block から flex に修正 */
   .fullscreen-overlay.active {
     display: flex;
   }
@@ -162,53 +161,6 @@
     word-break: break-all;
   }
   
-  // 全画面モード
-  const overlay = document.getElementById('fullscreenOverlay');
-  const fullPreview = document.getElementById('fullPreview');
-  const btnClose = document.getElementById('btnClose');
-
-  document.getElementById('btnFullscreen').addEventListener('click', () => {
-    if (input.value.trim() === '') return;
-    fullPreview.innerHTML = preview.innerHTML;
-    fullPreview.style.fontSize = currentSize;
-    overlay.classList.add('active');
-    
-    setTimeout(() => { overlay.scrollLeft = overlay.scrollWidth - overlay.clientWidth; }, 10);
-  });
-
-  function closeFullscreen() {
-    overlay.classList.remove('active');
-  }
-
-  // 閉じるボタン（一応残す場合）をクリックで閉じる
-  btnClose.addEventListener('click', (e) => {
-    e.stopPropagation();
-    closeFullscreen();
-  });
-
-  // 【新機能】全画面の背景をダブルクリック（ダブルタップ）で閉じる
-  let lastTap = 0;
-  overlay.addEventListener('click', (e) => {
-    const currentTime = new Date().getTime();
-    const tapLength = currentTime - lastTap;
-    
-    // 0.3秒以内の連続クリックをダブルクリックと判定
-    if (tapLength < 300 && tapLength > 0) {
-      closeFullscreen();
-      e.preventDefault();
-    }
-    lastTap = currentTime;
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeFullscreen();
-  });
-
-  overlay.addEventListener('wheel', (e) => {
-    if (!overlay.classList.contains('active')) return;
-    e.preventDefault();
-    overlay.scrollLeft -= e.deltaY;
-  }, { passive: false });
   /* 縦中横 */
   .tcy {
     -webkit-text-combine: horizontal;
@@ -231,7 +183,7 @@
     display: flex;
     gap: 10px;
     align-items: center;
-    background: rgba(247, 244, 239, 0.9); /* スクロール文字と被っても読めるように背景追加 */
+    background: rgba(247, 244, 239, 0.9);
     padding: 4px 8px;
     border-radius: 4px;
     backdrop-filter: blur(4px);
@@ -284,7 +236,7 @@
   @media (max-width: 680px) {
     .layout {
       grid-template-columns: 1fr;
-      grid-template-rows: auto 1fr 1px 1.2fr; /* 比率を調整 */
+      grid-template-rows: auto 1fr 1px 1.2fr;
       height: 100dvh;
     }
     .divider { grid-row: 3; grid-column: 1; height: 1px; width: 100%; }
@@ -311,7 +263,7 @@
     }
     .btn { padding: 4px 8px; font-size: 11px; }
     .btn-size { padding: 4px 6px; min-width: 30px; }
-    .size-label { display: none; } /* スマホではラベルを非表示にして省スペース化 */
+    .size-label { display: none; }
   }
 </style>
 </head>
@@ -336,7 +288,6 @@
 </div>
 
 <div class="fullscreen-overlay" id="fullscreenOverlay">
-  <button class="fullscreen-close" id="btnClose">✕ 閉じる</button>
   <div class="tategumi-full" id="fullPreview"></div>
 </div>
 
@@ -373,22 +324,16 @@
 
   function toTategumi(text) {
     if (!text) return '';
-    // XSS対策
     let s = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;');
 
-    // 半角英数を全角に変換
     s = s.replace(/[A-Za-z0-9]+/g, m => toZen(m));
-
-    // > を全角の＞に変換
     s = s.replace(/>/g, '＞');
 
-    // 括弧・記号を縦向き文字に置換
     for (const [from, to] of Object.entries(symbolMap)) {
       s = s.split(from).join(to);
     }
-
     return s;
   }
 
@@ -404,12 +349,10 @@
     currentSize = size;
     preview.style.fontSize = size;
     
-    // CSSの100dvhベースで綺麗に収まるため、JSでのheight動的計算は最小限に
     const headerH = document.querySelector('header').offsetHeight;
     preview.style.height = `calc(100dvh - ${headerH + 60}px)`;
   }
 
-  // 初期表示
   setSize(sizes['中']);
 
   document.getElementById('btnSmall').addEventListener('click', () => setSize(sizes['小']));
@@ -424,54 +367,47 @@
     input.focus();
   });
 
-  // 全画面モード
+  // --- 全画面モード関連 ---
   const overlay = document.getElementById('fullscreenOverlay');
   const fullPreview = document.getElementById('fullPreview');
-  const btnClose = document.getElementById('btnClose');
-  let hideTimer;
 
-  function showClose() {
-    btnClose.style.opacity = '1';
-    btnClose.style.pointerEvents = 'auto';
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => {
-      btnClose.style.opacity = '0';
-      btnClose.style.pointerEvents = 'none';
-    }, 2500); // 少し早めに消えるよう調整
-  }
-
- document.getElementById('btnFullscreen').addEventListener('click', () => {
-    if (input.value.trim() === '') return; // 空のときは何もしない
+  document.getElementById('btnFullscreen').addEventListener('click', () => {
+    if (input.value.trim() === '') return;
     fullPreview.innerHTML = preview.innerHTML;
     fullPreview.style.fontSize = currentSize;
-    fullPreview.style.height = `calc(100dvh - 40px)`;
     overlay.classList.add('active');
     
-    // 【ここを修正】表示された直後、強制的に一番右端（文頭）へスクロールさせる
+    // 表示直後に一番右端（文頭）へスクロールを合わせる
     setTimeout(() => { 
       overlay.scrollLeft = overlay.scrollWidth - overlay.clientWidth; 
     }, 10);
-    
-    showClose();
   });
 
   function closeFullscreen() {
     overlay.classList.remove('active');
   }
 
-  btnClose.addEventListener('click', (e) => {
-    e.stopPropagation(); // 閉じるボタン自体をクリックした時のイベント伝播をストップ
-    closeFullscreen();
-  });
-  
-  overlay.addEventListener('click', showClose);
-  overlay.addEventListener('touchstart', showClose);
+  // PCでのダブルクリック、スマホでのダブルタップで閉じる
+  let lastTap = 0;
+  const handleDoubleTap = (e) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    if (tapLength < 300 && tapLength > 0) {
+      closeFullscreen();
+      e.preventDefault();
+    }
+    lastTap = currentTime;
+  };
 
+  overlay.addEventListener('click', handleDoubleTap);
+  overlay.addEventListener('touchend', handleDoubleTap);
+
+  // Escキーで閉じる
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeFullscreen();
   });
 
-  // マウスホイールで左に読み進むように修正 (-= に変更)
+  // マウスホイールでの横スクロール制御
   overlay.addEventListener('wheel', (e) => {
     if (!overlay.classList.contains('active')) return;
     e.preventDefault();
