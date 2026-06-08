@@ -142,6 +142,7 @@
     justify-content: flex-end;
     align-items: flex-start;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-x; /* 横スクロールのジェスチャーをブラウザに保証させる */
   }
   
   .fullscreen-overlay.active {
@@ -356,85 +357,4 @@
   setSize(sizes['中']);
 
   document.getElementById('btnSmall').addEventListener('click', () => setSize(sizes['小']));
-  document.getElementById('btnMedium').addEventListener('click', () => setSize(sizes['中']));
-  document.getElementById('btnLarge').addEventListener('click', () => setSize(sizes['大']));
-  document.getElementById('btnXLarge').addEventListener('click', () => setSize(sizes['特大']));
-
-  document.getElementById('btnClear').addEventListener('click', () => {
-    input.value = '';
-    preview.innerHTML = '';
-    preview.classList.add('empty');
-    input.focus();
-  });
-
-  // --- 全画面モード関連 ---
-  const overlay = document.getElementById('fullscreenOverlay');
-  const fullPreview = document.getElementById('fullPreview');
-
-  document.getElementById('btnFullscreen').addEventListener('click', () => {
-    if (input.value.trim() === '') return;
-    fullPreview.innerHTML = preview.innerHTML;
-    fullPreview.style.fontSize = currentSize;
-    overlay.classList.add('active');
-    
-    // 表示直後に一番右端（文頭）へスクロールを合わせる
-    setTimeout(() => { 
-      overlay.scrollLeft = overlay.scrollWidth - overlay.clientWidth; 
-    }, 10);
-  });
-
-  function closeFullscreen() {
-    overlay.classList.remove('active');
-  }
-
-  // PCでのダブルクリック、スマホでのダブルタップで閉じる
- // --- ここから差し替え（iPhoneの誤判定完全ガード版） ---
-  let lastTap = 0;
-  let touchStartTime = 0;
-
-  // PCでのダブルクリックで閉じる（ここはそのまま流用）
-  overlay.addEventListener('dblclick', (e) => {
-    closeFullscreen();
-  });
-
-  // スマホ（iPhone）でのタッチ開始時
-  overlay.addEventListener('touchstart', (e) => {
-    touchStartTime = new Date().getTime(); // 指が触れた時刻を記録
-  });
-
-  // スマホ（iPhone）での確実なダブルタップ判定
-  overlay.addEventListener('touchend', (e) => {
-    const currentTime = new Date().getTime();
-    const touchDuration = currentTime - touchStartTime; // 指が触れていた時間
-
-    // 【ガード1】長押しや、指を画面につけたままのスクロール（150ミリ秒以上）は絶対に弾く
-    if (touchDuration > 150) return;
-
-    const tapLength = currentTime - lastTap; // 前回のタップからの間隔
-
-    // 【ガード2】トントンという「2回目の離脱」の間隔をチェック（0.25秒以内、かつ指のブレである0.04秒以下は弾く）
-    if (tapLength < 250 && tapLength > 40) {
-      closeFullscreen();
-      e.preventDefault();
-    }
-    lastTap = currentTime;
-  });
-  // --- ここまで差し替え ---
-
-  overlay.addEventListener('click', handleDoubleTap);
-  overlay.addEventListener('touchend', handleDoubleTap);
-
-  // Escキーで閉じる
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeFullscreen();
-  });
-
-  // マウスホイールでの横スクロール制御
-  overlay.addEventListener('wheel', (e) => {
-    if (!overlay.classList.contains('active')) return;
-    e.preventDefault();
-    overlay.scrollLeft -= e.deltaY;
-  }, { passive: false });
-</script>
-</body>
-</html>
+  document.getElementById('btnMedium
