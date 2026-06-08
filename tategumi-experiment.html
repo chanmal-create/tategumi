@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>縦書きプレビュー</title>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400&family=Noto+Sans+JP:wght@300&display=swap');
 
@@ -110,7 +111,7 @@
   }
 
   /* =========================
-     全画面（ここが修正済み）
+     全画面（安全パッチのみ追加）
   ========================= */
 
   .fullscreen-overlay {
@@ -122,36 +123,27 @@
 
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 20px 80px 20px 20px;
 
-    /* ★重要修正 */
-    display: none;
+    padding-left: 20px;
+    padding-right: 80px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+
+    /* ★追加（構造は変えない） */
+    text-align: right;
   }
 
   .fullscreen-overlay.active {
-    display: flex;              /* ← blockじゃなくflex */
-    justify-content: flex-end;  /* ←右寄せ */
-    align-items: flex-start;    /* ←上寄せ */
+    display: block;
   }
 
-  /* ★重要修正：短文右寄せ安定 */
+  /* ★追加：短文の右寄せ安定 */
   .fullscreen-overlay .tategumi-full {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    font-family: 'Noto Serif JP', serif;
-    font-weight: 300;
-    line-height: 2;
-    letter-spacing: 0.08em;
-
-    display: inline-block;   /* ←追加 */
-    width: max-content;      /* ←追加 */
-
-    height: calc(100dvh - 80px);
-    white-space: pre-wrap;
-    word-break: break-all;
+    display: inline-block;
+    width: max-content;
   }
 
-  /* 閉じるボタン（そのまま） */
+  /* 閉じるボタン */
   .fullscreen-close {
     position: fixed;
     top: 12px;
@@ -172,7 +164,7 @@
     color: var(--paper);
   }
 
-  /* ツールバー（そのまま） */
+  /* ツールバー（元のまま） */
   .toolbar {
     position: fixed;
     bottom: 28px;
