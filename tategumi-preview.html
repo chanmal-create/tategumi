@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>縦書きプレビュー</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400&family=Noto+Sans+JP:wght@300&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a18;
+    --paper: #f7f4ef;
+    --muted: #9a9690;
+    --line: #dedad4;
+    --accent: #5a4a3a;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 300;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    grid-template-rows: auto 1fr;
+    height: 100dvh;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  header {
+    grid-column: 1 / -1;
+    padding: 28px 40px 20px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  h1 {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 15px;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+  }
+
+  .divider {
+    grid-row: 2;
+    background: var(--line);
+  }
+
+  /* --- 左：入力 --- */
+  .input-pane {
+    padding: 32px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pane-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  textarea {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.9;
+    color: var(--ink);
+    caret-color: var(--accent);
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+  }
+
+  textarea::placeholder {
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  /* --- 右：プレビュー --- */
+  .preview-pane {
+    padding: 40px 48px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+  }
+
+  .tategumi {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 15px;
+    font-weight: 300;
+    line-height: 2;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    height: calc(100dvh - 120px);
+    white-space: pre-wrap;
+    word-break: break-all;
+    -webkit-font-feature-settings: "vert" 1;
+    font-feature-settings: "vert" 1;
+    transition: font-size 0.15s;
+  }
+
+  /* 全画面モード */
+  .fullscreen-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    z-index: 1000;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 20px 40px 20px 20px;
+    justify-content: flex-end;
+    align-items: flex-start;
+  }
+  .fullscreen-overlay.active {
+    display: flex;
+  }
+  .fullscreen-overlay .tategumi-full {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 300;
+    line-height: 2;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    height: calc(100dvh - 80px);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .fullscreen-close {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    padding: 6px 16px;
+    cursor: pointer;
+    border-radius: 2px;
+    z-index: 1001;
+  }
+  .fullscreen-close:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* 縦中横：2〜3桁の数字を横並びに */
+  .tcy {
+    -webkit-text-combine: horizontal;
+    text-combine-upright: all;
+  }
+
+  .tategumi.empty::after {
+    content: 'テキストを入力すると\Aここに縦書きで表示されます';
+    white-space: pre;
+    color: var(--muted);
+    opacity: 0.5;
+    font-size: 13px;
+  }
+
+  /* --- ツールバー --- */
+  .toolbar {
+    position: fixed;
+    bottom: 28px;
+    right: 40px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .size-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .btn {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    border-radius: 2px;
+  }
+
+  .btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  .btn-size {
+    padding: 5px 10px;
+    font-size: 14px;
+    min-width: 32px;
+    text-align: center;
+  }
+
+  /* スクロールバー */
+  .preview-pane::-webkit-scrollbar { height: 4px; }
+  .preview-pane::-webkit-scrollbar-track { background: transparent; }
+  .preview-pane::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
+
+  @media (max-width: 680px) {
+    .layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto 1px 1fr;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    .divider { grid-row: 3; grid-column: 1; height: 1px; width: 100%; }
+    .input-pane {
+      height: 38vh;
+      padding: 16px 20px;
+      overflow-y: auto;
+    }
+    .preview-pane {
+      padding: 20px;
+      height: calc(62vh - 60px);
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    .tategumi {
+      height: calc(62vh - 100px);
+    }
+    header { padding: 16px 20px 12px; }
+    h1 { font-size: 13px; }
+    .toolbar {
+      bottom: 10px;
+      right: 12px;
+      gap: 6px;
+    }
+    .btn { padding: 5px 10px; font-size: 11px; }
+    .btn-size { padding: 4px 8px; }
+    .size-label { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <header>
+    <h1>縦書きプレビュー</h1>
+    <span class="subtitle">note 用</span>
+  </header>
+
+  <div class="input-pane">
+    <div class="pane-label">横書き入力</div>
+    <textarea id="input" placeholder="note の文章をここにペーストしてください…" spellcheck="false"></textarea>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="preview-pane" id="previewPane">
+    <div class="tategumi empty" id="preview"></div>
+  </div>
+</div>
+
+<!-- 全画面オーバーレイ -->
+<div class="fullscreen-overlay" id="fullscreenOverlay">
+  <button class="fullscreen-close" id="btnClose">✕ 閉じる</button>
+  <div class="tategumi-full" id="fullPreview"></div>
+</div>
+
+<div class="toolbar">
+  <span class="size-label">文字サイズ</span>
+  <button class="btn btn-size" id="btnSmall">小</button>
+  <button class="btn btn-size" id="btnMedium">中</button>
+  <button class="btn btn-size" id="btnLarge">大</button>
+  <button class="btn btn-size" id="btnXLarge">特大</button>
+  <button class="btn" id="btnClear">クリア</button>
+  <button class="btn" id="btnFullscreen">全画面</button>
+</div>
+
+<script>
+  const input = document.getElementById('input');
+  const preview = document.getElementById('preview');
+  const sizes = { '小': '13px', '中': '15px', '大': '18px', '特大': '24px' };
+
+  // 半角→全角変換マップ
+  const toZen = (s) => s.replace(/[0-9]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0))
+                        .replace(/[a-z]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0))
+                        .replace(/[A-Z]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0));
+
+  const symbolMap = {
+    '(': '︵', ')': '︶',
+    '（': '︵', '）': '︶',
+    '[': '﹇', ']': '﹈',
+    '【': '︻', '】': '︼',
+    '﹁': '﹁', '﹂': '﹂',
+    '{': '︷', '}': '︸',
+    '…': '︙',
+    '—': '︱',
+  };
+
+  function toTategumi(text) {
+    if (!text) return '';
+    // XSS対策（タグのみ除去、>はそのまま全角に変換）
+    let s = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;');
+
+    // 半角英数を全角に変換（縦書きで自動的に縦向きになる）
+    s = s.replace(/[A-Za-z0-9]+/g, m => toZen(m));
+
+    // > を全角の＞に変換
+    s = s.replace(/>/g, '＞');
+
+    // 括弧・記号を縦向き文字に置換
+    for (const [from, to] of Object.entries(symbolMap)) {
+      s = s.split(from).join(to);
+    }
+
+    return s;
+  }
+
+  input.addEventListener('input', () => {
+    const val = input.value;
+    preview.innerHTML = toTategumi(val);
+    preview.classList.toggle('empty', val.trim() === '');
+  });
+
+  let currentSize = sizes['中'];
+
+  function setSize(size) {
+    currentSize = size;
+    preview.style.fontSize = size;
+    // フォントサイズに合わせてtategumi heightを動的調整
+    const px = parseInt(size);
+    const headerH = document.querySelector('header').offsetHeight;
+    preview.style.height = `calc(100vh - ${headerH + 40}px)`;
+  }
+
+  // 初期表示時にも高さを調整
+  setSize(sizes['中']);
+
+  document.getElementById('btnSmall').addEventListener('click', () => setSize(sizes['小']));
+  document.getElementById('btnMedium').addEventListener('click', () => setSize(sizes['中']));
+  document.getElementById('btnLarge').addEventListener('click', () => setSize(sizes['大']));
+  document.getElementById('btnXLarge').addEventListener('click', () => setSize(sizes['特大']));
+
+  document.getElementById('btnClear').addEventListener('click', () => {
+    input.value = '';
+    preview.innerHTML = '';
+    preview.classList.add('empty');
+  });
+
+  // 全画面
+  const overlay = document.getElementById('fullscreenOverlay');
+  const fullPreview = document.getElementById('fullPreview');
+
+  document.getElementById('btnFullscreen').addEventListener('click', () => {
+    fullPreview.innerHTML = preview.innerHTML;
+    fullPreview.style.fontSize = currentSize;
+    fullPreview.style.height = `calc(100vh - 96px)`;
+    overlay.classList.add('active');
+  });
+
+  document.getElementById('btnClose').addEventListener('click', () => {
+    overlay.classList.remove('active');
+  });
+</script>
+</body>
+</html>
