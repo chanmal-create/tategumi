@@ -398,17 +398,29 @@
   const overlay = document.getElementById('fullscreenOverlay');
   const fullPreview = document.getElementById('fullPreview');
 
-  document.getElementById('btnFullscreen').addEventListener('click', () => {
+ document.getElementById('btnFullscreen').addEventListener('click', () => {
     fullPreview.innerHTML = preview.innerHTML;
     fullPreview.style.fontSize = currentSize;
     fullPreview.style.height = `calc(100dvh - 40px)`;
     overlay.classList.add('active');
     setTimeout(() => { overlay.scrollLeft = 0; }, 50);
+    showClose();
   });
 
   document.getElementById('btnClose').addEventListener('click', () => {
     overlay.classList.remove('active');
   });
+  let hideTimer;
+
+  function showClose() {
+    btnClose.style.opacity = '1';
+    btnClose.style.pointerEvents = 'auto';
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      btnClose.style.opacity = '0';
+      btnClose.style.pointerEvents = 'none';
+    }, 3000);
+  }
   overlay.addEventListener('wheel', (e) => {
     if (!overlay.classList.contains('active')) return;
     e.preventDefault();
