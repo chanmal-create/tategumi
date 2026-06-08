@@ -142,13 +142,12 @@
     justify-content: flex-end;
     align-items: flex-start;
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-x; /* 横スクロールのジェスチャーをブラウザに保証させる */
   }
-  
+
   .fullscreen-overlay.active {
     display: flex;
   }
-  
+
   .fullscreen-overlay .tategumi-full {
     writing-mode: vertical-rl;
     text-orientation: mixed;
@@ -161,7 +160,7 @@
     white-space: pre-wrap;
     word-break: break-all;
   }
-  
+
   /* 縦中横 */
   .tcy {
     -webkit-text-combine: horizontal;
@@ -307,7 +306,7 @@
   const preview = document.getElementById('preview');
   const sizes = { '小': '13px', '中': '15px', '大': '18px', '特大': '24px' };
 
-  // 半角→全角変換マップ
+  // 半角→全角変換
   const toZen = (s) => s.replace(/[0-9]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0))
                         .replace(/[a-z]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0))
                         .replace(/[A-Z]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0));
@@ -315,7 +314,7 @@
   const symbolMap = {
     '(': '︵', ')': '︶',
     '（': '︵', '）': '︶',
-     '[': '﹇', ']': '﹈',
+    '[': '﹇', ']': '﹈',
     '【': '︻', '】': '︼',
     '﹁': '﹁', '﹂': '﹂',
     '{': '︷', '}': '︸',
@@ -349,7 +348,6 @@
   function setSize(size) {
     currentSize = size;
     preview.style.fontSize = size;
-    
     const headerH = document.querySelector('header').offsetHeight;
     preview.style.height = `calc(100dvh - ${headerH + 60}px)`;
   }
@@ -357,4 +355,74 @@
   setSize(sizes['中']);
 
   document.getElementById('btnSmall').addEventListener('click', () => setSize(sizes['小']));
-  document.getElementById('btnMedium
+  document.getElementById('btnMedium').addEventListener('click', () => setSize(sizes['中']));
+  document.getElementById('btnLarge').addEventListener('click', () => setSize(sizes['大']));
+  document.getElementById('btnXLarge').addEventListener('click', () => setSize(sizes['特大']));
+
+  document.getElementById('btnClear').addEventListener('click', () => {
+    input.value = '';
+    preview.innerHTML = '';
+    preview.classList.add('empty');
+    input.focus();
+  });
+
+  // --- 全画面モード ---
+  const overlay = document.getElementById('fullscreenOverlay');
+  const fullPreview = document.getElementById('fullPreview');
+
+  document.getElementById('btnFullscreen').addEventListener('click', () => {
+    if (input.value.trim() === '') return;
+    fullPreview.innerHTML = preview.innerHTML;
+    fullPreview.style.fontSize = currentSize;
+    overlay.classList.add('active');
+    setTimeout(() => {
+      overlay.scrollLeft = overlay.scrollWidth - overlay.clientWidth;
+    }, 10);
+  });
+
+  function closeFullscreen() {
+    overlay.classList.remove('active');
+  }
+
+  // PCダブルクリックで閉じる
+  overlay.addEventListener('dblclick', () => {
+    closeFullscreen();
+  });
+
+  // iPhoneダブルタップで閉じる
+  let lastTap = 0;
+  let touchStartTime = 0;
+
+  overlay.addEventListener('touchstart', (e) => {
+    touchStartTime = new Date().getTime();
+  });
+
+  overlay.addEventListener('touchend', (e) => {
+    const currentTime = new Date().getTime();
+    const touchDuration = currentTime - touchStartTime;
+
+    if (touchDuration > 150) return;
+
+    const tapLength = currentTime - lastTap;
+
+    if (tapLength < 250 && tapLength > 40) {
+      closeFullscreen();
+      e.preventDefault();
+    }
+    lastTap = currentTime;
+  });
+
+  // Escキーで閉じる
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeFullscreen();
+  });
+
+  // マウスホイールで横スクロール
+  overlay.addEventListener('wheel', (e) => {
+    if (!overlay.classList.contains('active')) return;
+    e.preventDefault();
+    overlay.scrollLeft -= e.deltaY;
+  }, { passive: false });
+</script>
+</body>
+</html>
