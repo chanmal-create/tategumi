@@ -420,7 +420,12 @@
       btnClose.style.opacity = '0';
       btnClose.style.pointerEvents = 'none';
     }, 3000);
-  }
+  } overlay.addEventListener('click', showClose);
+  overlay.addEventListener('touchstart', showClose);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') overlay.classList.remove('active');
+  });
   overlay.addEventListener('wheel', (e) => {
     if (!overlay.classList.contains('active')) return;
     e.preventDefault();
