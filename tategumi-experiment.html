@@ -401,38 +401,57 @@
   const fullPreview = document.getElementById('fullPreview');
 
  document.getElementById('btnFullscreen').addEventListener('click', () => {
-    fullPreview.innerHTML = preview.innerHTML;
-    fullPreview.style.fontSize = currentSize;
-    fullPreview.style.height = `calc(100dvh - 40px)`;
-    overlay.classList.add('active');
-    setTimeout(() => { overlay.scrollLeft = 0; }, 50);
+  fullPreview.innerHTML = preview.innerHTML;
+  fullPreview.style.fontSize = currentSize;
+  fullPreview.style.height = `calc(100dvh - 40px)`;
+
+  overlay.classList.add('active');
+  setTimeout(() => { overlay.scrollLeft = 0; }, 50);
+
+  showClose();
+});
+
+document.getElementById('btnClose').addEventListener('click', () => {
+  overlay.classList.remove('active');
+});
+
+const btnClose = document.getElementById('btnClose');
+let hideTimer;
+let lastTapTime = 0;
+
+function showClose() {
+  btnClose.style.opacity = '1';
+  btnClose.style.pointerEvents = 'auto';
+
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => {
+    btnClose.style.opacity = '0';
+    btnClose.style.pointerEvents = 'none';
+  }, 3000);
+}
+
+// ダブルタップ
+overlay.addEventListener('touchend', () => {
+  const now = Date.now();
+  const diff = now - lastTapTime;
+
+  if (diff > 0 && diff < 300) {
     showClose();
-  });
+  }
 
-  document.getElementById('btnClose').addEventListener('click', () => {
-    overlay.classList.remove('active');
-  });
-  const btnClose = document.getElementById('btnClose');
-  let hideTimer;
+  lastTapTime = now;
+});
 
-  function showClose() {
-    btnClose.style.opacity = '1';
-    btnClose.style.pointerEvents = 'auto';
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => {
-      btnClose.style.opacity = '0';
-      btnClose.style.pointerEvents = 'none';
-    }, 3000);
-  } overlay.addEventListener('click', showClose);
-  overlay.addEventListener('touchstart', showClose);
+// ESC
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') overlay.classList.remove('active');
+});
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') overlay.classList.remove('active');
-  });
-  overlay.addEventListener('wheel', (e) => {
-    if (!overlay.classList.contains('active')) return;
-    e.preventDefault();
-    overlay.scrollLeft += e.deltaY;
+// 横スクロール
+overlay.addEventListener('wheel', (e) => {
+  if (!overlay.classList.contains('active')) return;
+  e.preventDefault();
+  overlay.scrollLeft += e.deltaY;
 }, { passive: false });
 </script>
 </body>
