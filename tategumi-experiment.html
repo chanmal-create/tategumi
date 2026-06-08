@@ -388,28 +388,38 @@
   }
 
   // PCでのダブルクリック、スマホでのダブルタップで閉じる
- let lastTap = 0;
-  
-  // PCでのダブルクリックで閉じる
+ // --- ここから差し替え（iPhoneの誤判定完全ガード版） ---
+  let lastTap = 0;
+  let touchStartTime = 0;
+
+  // PCでのダブルクリックで閉じる（ここはそのまま流用）
   overlay.addEventListener('dblclick', (e) => {
     closeFullscreen();
   });
 
+  // スマホ（iPhone）でのタッチ開始時
+  overlay.addEventListener('touchstart', (e) => {
+    touchStartTime = new Date().getTime(); // 指が触れた時刻を記録
+  });
+
   // スマホ（iPhone）での確実なダブルタップ判定
   overlay.addEventListener('touchend', (e) => {
-    // スクロール中（2本以上の指での操作など）は除外
-    if (e.touches.length > 0) return;
-
     const currentTime = new Date().getTime();
-    const tapLength = currentTime - lastTap;
-    
-    // 判定時間を「0.25秒以内」に少し厳しくし、0秒（誤検知）は弾く
+    const touchDuration = currentTime - touchStartTime; // 指が触れていた時間
+
+    // 【ガード1】長押しや、指を画面につけたままのスクロール（150ミリ秒以上）は絶対に弾く
+    if (touchDuration > 150) return;
+
+    const tapLength = currentTime - lastTap; // 前回のタップからの間隔
+
+    // 【ガード2】トントンという「2回目の離脱」の間隔をチェック（0.25秒以内、かつ指のブレである0.04秒以下は弾く）
     if (tapLength < 250 && tapLength > 40) {
       closeFullscreen();
-      e.preventDefault(); // 画面のズームなどの余計な動きを止める
+      e.preventDefault();
     }
     lastTap = currentTime;
   });
+  // --- ここまで差し替え ---
 
   overlay.addEventListener('click', handleDoubleTap);
   overlay.addEventListener('touchend', handleDoubleTap);
