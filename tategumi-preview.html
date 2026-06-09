@@ -23,6 +23,7 @@
     color: var(--ink);
     font-family: 'Noto Sans JP', sans-serif;
     font-weight: 300;
+    overflow: hidden;
   }
 
   .layout {
@@ -120,7 +121,7 @@
     line-height: 2;
     letter-spacing: 0.08em;
     color: var(--ink);
-    height: calc(100dvh - 120px);
+    height: calc(100dvh - 140px);
     white-space: pre-wrap;
     word-break: break-all;
     -webkit-font-feature-settings: "vert" 1;
@@ -137,14 +138,16 @@
     z-index: 1000;
     overflow-x: scroll;
     overflow-y: hidden;
-    padding: 20px 80px 20px 20px;
+    padding: 40px 80px 40px 40px;
     justify-content: flex-end;
     align-items: flex-start;
     -webkit-overflow-scrolling: touch;
   }
+
   .fullscreen-overlay.active {
-    display: block;
+    display: flex;
   }
+
   .fullscreen-overlay .tategumi-full {
     writing-mode: vertical-rl;
     text-orientation: mixed;
@@ -157,32 +160,8 @@
     white-space: pre-wrap;
     word-break: break-all;
   }
-  .fullscreen-close {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    appearance: none;
-    border: 1px solid var(--line);
-    background: rgba(247, 244, 239, 0.6);
-    color: var(--ink);
-    font-family: 'Noto Sans JP', sans-serif;
-    font-size: 10px;
-    font-weight: 300;
-    letter-spacing: 0.1em;
-    padding: 4px 10px;
-    cursor: pointer;
-    border-radius: 2px;
-    z-index: 1001;
-    backdrop-filter: blur(4px);
-    transition: opacity 1.5s;
-    opacity: 1;
-  }
-  .fullscreen-close:hover {
-    background: rgba(26, 26, 24, 0.8);
-    color: var(--paper);
-  }
 
-  /* 縦中横：2〜3桁の数字を横並びに */
+  /* 縦中横 */
   .tcy {
     -webkit-text-combine: horizontal;
     text-combine-upright: all;
@@ -204,6 +183,10 @@
     display: flex;
     gap: 10px;
     align-items: center;
+    background: rgba(247, 244, 239, 0.9);
+    padding: 4px 8px;
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
   }
 
   .size-label {
@@ -223,7 +206,7 @@
     letter-spacing: 0.1em;
     padding: 6px 16px;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
     border-radius: 2px;
   }
 
@@ -235,55 +218,52 @@
 
   .btn-size {
     padding: 5px 10px;
-    font-size: 14px;
-    min-width: 32px;
+    font-size: 12px;
+    min-width: 38px;
     text-align: center;
   }
 
   /* スクロールバー */
-  .preview-pane::-webkit-scrollbar { height: 8px; }
-  .preview-pane::-webkit-scrollbar-track { background: var(--line); border-radius: 4px; }
-  .preview-pane::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 4px; }
-  .preview-pane { scrollbar-width: auto; }
-
-  /* 全画面スクロールバー */
-  .fullscreen-overlay::-webkit-scrollbar { height: 8px; }
-  .fullscreen-overlay::-webkit-scrollbar-track { background: var(--line); border-radius: 4px; }
-  .fullscreen-overlay::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 4px; }
-  .fullscreen-overlay { scrollbar-width: auto; }
+  .preview-pane::-webkit-scrollbar,
+  .fullscreen-overlay::-webkit-scrollbar { height: 6px; }
+  .preview-pane::-webkit-scrollbar-track,
+  .fullscreen-overlay::-webkit-scrollbar-track { background: transparent; }
+  .preview-pane::-webkit-scrollbar-thumb,
+  .fullscreen-overlay::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+  .preview-pane::-webkit-scrollbar-thumb:hover,
+  .fullscreen-overlay::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
   @media (max-width: 680px) {
     .layout {
       grid-template-columns: 1fr;
-      grid-template-rows: auto auto 1px 1fr;
+      grid-template-rows: auto 1fr 1px 1.2fr;
       height: 100dvh;
-      overflow: hidden;
     }
     .divider { grid-row: 3; grid-column: 1; height: 1px; width: 100%; }
     .input-pane {
-      height: 38vh;
-      padding: 16px 20px;
-      overflow-y: auto;
+      grid-row: 2;
+      height: 100%;
+      padding: 20px;
     }
     .preview-pane {
+      grid-row: 4;
       padding: 20px;
-      height: calc(62vh - 60px);
-      overflow-x: auto;
-      overflow-y: hidden;
+      height: 100%;
     }
     .tategumi {
-      height: calc(62vh - 100px);
+      height: calc(100% - 40px);
     }
     header { padding: 16px 20px 12px; }
     h1 { font-size: 13px; }
     .toolbar {
-      bottom: 10px;
+      bottom: 12px;
       right: 12px;
-      gap: 6px;
+      gap: 4px;
+      padding: 2px;
     }
-    .btn { padding: 5px 10px; font-size: 11px; }
-    .btn-size { padding: 4px 8px; }
-    .size-label { font-size: 10px; }
+    .btn { padding: 4px 8px; font-size: 11px; }
+    .btn-size { padding: 4px 6px; min-width: 30px; }
+    .size-label { display: none; }
   }
 </style>
 </head>
@@ -307,9 +287,7 @@
   </div>
 </div>
 
-<!-- 全画面オーバーレイ -->
 <div class="fullscreen-overlay" id="fullscreenOverlay">
-  <button class="fullscreen-close" id="btnClose">✕ 閉じる</button>
   <div class="tategumi-full" id="fullPreview"></div>
 </div>
 
@@ -328,7 +306,7 @@
   const preview = document.getElementById('preview');
   const sizes = { '小': '13px', '中': '15px', '大': '18px', '特大': '24px' };
 
-  // 半角→全角変換マップ
+  // 半角→全角変換
   const toZen = (s) => s.replace(/[0-9]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0))
                         .replace(/[a-z]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0))
                         .replace(/[A-Z]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0));
@@ -346,22 +324,16 @@
 
   function toTategumi(text) {
     if (!text) return '';
-    // XSS対策（タグのみ除去、>はそのまま全角に変換）
     let s = text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;');
 
-    // 半角英数を全角に変換（縦書きで自動的に縦向きになる）
     s = s.replace(/[A-Za-z0-9]+/g, m => toZen(m));
-
-    // > を全角の＞に変換
     s = s.replace(/>/g, '＞');
 
-    // 括弧・記号を縦向き文字に置換
     for (const [from, to] of Object.entries(symbolMap)) {
       s = s.split(from).join(to);
     }
-
     return s;
   }
 
@@ -376,13 +348,10 @@
   function setSize(size) {
     currentSize = size;
     preview.style.fontSize = size;
-    // フォントサイズに合わせてtategumi heightを動的調整
-    const px = parseInt(size);
     const headerH = document.querySelector('header').offsetHeight;
-    preview.style.height = `calc(100vh - ${headerH + 40}px)`;
+    preview.style.height = `calc(100dvh - ${headerH + 60}px)`;
   }
 
-  // 初期表示時にも高さを調整
   setSize(sizes['中']);
 
   document.getElementById('btnSmall').addEventListener('click', () => setSize(sizes['小']));
@@ -394,46 +363,66 @@
     input.value = '';
     preview.innerHTML = '';
     preview.classList.add('empty');
+    input.focus();
   });
 
-  // 全画面
+  // --- 全画面モード ---
   const overlay = document.getElementById('fullscreenOverlay');
   const fullPreview = document.getElementById('fullPreview');
 
- document.getElementById('btnFullscreen').addEventListener('click', () => {
+  document.getElementById('btnFullscreen').addEventListener('click', () => {
+    if (input.value.trim() === '') return;
     fullPreview.innerHTML = preview.innerHTML;
     fullPreview.style.fontSize = currentSize;
-    fullPreview.style.height = `calc(100dvh - 40px)`;
     overlay.classList.add('active');
-    setTimeout(() => { overlay.scrollLeft = 0; }, 50);
-    showClose();
+    setTimeout(() => {
+      overlay.scrollLeft = overlay.scrollWidth - overlay.clientWidth;
+    }, 10);
   });
 
-  document.getElementById('btnClose').addEventListener('click', () => {
+  function closeFullscreen() {
     overlay.classList.remove('active');
+  }
+
+  // PCダブルクリックで閉じる
+  overlay.addEventListener('dblclick', () => {
+    closeFullscreen();
   });
-  const btnClose = document.getElementById('btnClose');
-  let hideTimer;
 
-  function showClose() {
-    btnClose.style.opacity = '1';
-    btnClose.style.pointerEvents = 'auto';
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => {
-      btnClose.style.opacity = '0';
-      btnClose.style.pointerEvents = 'none';
-    }, 3000);
-  } overlay.addEventListener('click', showClose);
-  overlay.addEventListener('touchstart', showClose);
+  // iPhoneダブルタップで閉じる
+  let lastTap = 0;
+  let touchStartTime = 0;
 
+  overlay.addEventListener('touchstart', (e) => {
+    touchStartTime = new Date().getTime();
+  });
+
+  overlay.addEventListener('touchend', (e) => {
+    const currentTime = new Date().getTime();
+    const touchDuration = currentTime - touchStartTime;
+
+    if (touchDuration > 150) return;
+
+    const tapLength = currentTime - lastTap;
+
+    if (tapLength < 250 && tapLength > 40) {
+      closeFullscreen();
+      e.preventDefault();
+    }
+    lastTap = currentTime;
+  });
+
+  // Escキーで閉じる
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') overlay.classList.remove('active');
+    if (e.key === 'Escape') closeFullscreen();
   });
+
+  // マウスホイールで横スクロール
   overlay.addEventListener('wheel', (e) => {
     if (!overlay.classList.contains('active')) return;
     e.preventDefault();
-    overlay.scrollLeft += e.deltaY;
-}, { passive: false });
+    overlay.scrollLeft -= e.deltaY;
+  }, { passive: false });
 </script>
 </body>
 </html>
