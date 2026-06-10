@@ -373,7 +373,8 @@
 
   document.getElementById('btnFullscreen').addEventListener('click', () => {
     if (input.value.trim() === '') return;
-    fullPreview.innerHTML = preview.innerHTML;
+    fullPreview.innerHTML = preview.innerHTML + '<br><br><br><br><br><br><br><br><br><br>';
+
     fullPreview.style.fontSize = currentSize;
     overlay.classList.add('active');
     setTimeout(() => {
