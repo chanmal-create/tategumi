@@ -431,6 +431,22 @@
     e.preventDefault();
     overlay.scrollLeft -= e.deltaY;
   }, { passive: false });
+  // フォント切り替え
+  document.getElementById('btnMincho').addEventListener('click', () => {
+    preview.style.fontFamily = "'Noto Serif JP', serif";
+    fullPreview.style.fontFamily = "'Noto Serif JP', serif";
+  });
+
+  document.getElementById('btnGothic').addEventListener('click', () => {
+    preview.style.fontFamily = "'Noto Sans JP', sans-serif";
+    fullPreview.style.fontFamily = "'Noto Sans JP', sans-serif";
+  });
+
+  document.getElementById('btnShippori').addEventListener('click', () => {
+    preview.style.fontFamily = "'Shippori Mincho', serif";
+    fullPreview.style.fontFamily = "'Shippori Mincho', serif";
+  });
+
 </script>
 </body>
 </html>
