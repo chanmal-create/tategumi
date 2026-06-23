@@ -106,7 +106,6 @@
     overflow-y: hidden;
     display: flex;
     align-items: flex-start;
-    justify-content: flex-end;
   }
 
   .tategumi {
@@ -122,6 +121,7 @@
     white-space: pre-wrap;
     word-break: break-all;
     transition: font-size 0.15s;
+    flex-shrink: 0;
   }
 
   .tategumi.empty::after {
@@ -141,7 +141,6 @@
     overflow-x: scroll;
     overflow-y: hidden;
     padding: 40px;
-    justify-content: flex-end;
     align-items: flex-start;
     -webkit-overflow-scrolling: touch;
   }
@@ -280,6 +279,7 @@
 <script>
   const input = document.getElementById('input');
   const preview = document.getElementById('preview');
+  const previewPane = document.getElementById('previewPane');
   const fullPreview = document.getElementById('fullPreview');
   const overlay = document.getElementById('fullscreenOverlay');
   const sizes = { small: '13px', medium: '15px', large: '18px', xlarge: '24px' };
@@ -304,6 +304,9 @@
     const val = input.value;
     preview.innerHTML = toTategumi(val);
     preview.classList.toggle('empty', val.trim() === '');
+    requestAnimationFrame(() => {
+      previewPane.scrollLeft = previewPane.scrollWidth - previewPane.clientWidth;
+    });
   });
 
   function setSize(size) {
@@ -353,7 +356,6 @@
     overlay.classList.remove('active');
   }
 
-  const previewPane = document.getElementById('previewPane');
   previewPane.addEventListener('wheel', (e) => {
     e.preventDefault();
     previewPane.scrollLeft -= e.deltaY;
