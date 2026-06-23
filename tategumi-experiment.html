@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>縦書きプレビュー</title>
 <style>
-  @import   url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400&family=Noto+Sans+JP:wght@300&family=Shippori+Mincho:wght@400&family=Zen+Antique&family=Hina+Mincho&family=Kaisei+Decol&display=swap');
-
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400&family=Noto+Sans+JP:wght@300&family=Shippori+Mincho:wght@400&family=Hina+Mincho&family=Kaisei+Decol&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -66,7 +65,6 @@
     width: 1px;
   }
 
-  /* --- 左：入力 --- */
   .input-pane {
     padding: 32px 40px;
     display: flex;
@@ -95,7 +93,6 @@
     color: var(--ink);
     caret-color: var(--accent);
     writing-mode: horizontal-tb;
-    text-orientation: mixed;
   }
 
   textarea::placeholder {
@@ -103,7 +100,6 @@
     opacity: 0.6;
   }
 
-  /* --- 右：プレビュー --- */
   .preview-pane {
     padding: 40px 48px;
     overflow-x: auto;
@@ -125,48 +121,7 @@
     height: calc(100dvh - 140px);
     white-space: pre-wrap;
     word-break: break-all;
-    -webkit-font-feature-settings: "vert" 1;
-    font-feature-settings: "vert" 1;
     transition: font-size 0.15s;
-  }
-
-  /* 全画面モード */
-  .fullscreen-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: var(--paper);
-    z-index: 1000;
-    overflow-x: scroll;
-    overflow-y: hidden;
-    padding: 40px 40px 40px 40px;
-    justify-content: flex-end;
-    align-items: flex-start;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .fullscreen-overlay.active {
-    display: flex;
-  }
-
-  .fullscreen-overlay .tategumi-full {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    font-family: 'Noto Serif JP', serif;
-    font-weight: 300;
-    line-height: 2;
-    letter-spacing: 0.08em;
-    color: var(--ink);
-    height: calc(100dvh - 80px);
-    white-space: pre-wrap;
-    word-break: break-all;
- }
-    
-
-  /* 縦中横 */
-  .tcy {
-    -webkit-text-combine: horizontal;
-    text-combine-upright: all;
   }
 
   .tategumi.empty::after {
@@ -177,7 +132,37 @@
     font-size: 13px;
   }
 
-  /* --- ツールバー --- */
+  .fullscreen-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    z-index: 1000;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    padding: 40px;
+    justify-content: flex-end;
+    align-items: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .fullscreen-overlay.active {
+    display: flex;
+  }
+
+  .tategumi-full {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 300;
+    line-height: 2;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    height: calc(100dvh - 80px);
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
   .toolbar {
     position: fixed;
     bottom: 28px;
@@ -225,7 +210,6 @@
     text-align: center;
   }
 
-  /* スクロールバー */
   .preview-pane::-webkit-scrollbar,
   .fullscreen-overlay::-webkit-scrollbar { height: 6px; }
   .preview-pane::-webkit-scrollbar-track,
@@ -242,27 +226,12 @@
       height: 100dvh;
     }
     .divider { grid-row: 3; grid-column: 1; height: 1px; width: 100%; }
-    .input-pane {
-      grid-row: 2;
-      height: 100%;
-      padding: 20px;
-    }
-    .preview-pane {
-      grid-row: 4;
-      padding: 20px;
-      height: 100%;
-    }
-    .tategumi {
-      height: calc(100% - 40px);
-    }
+    .input-pane { grid-row: 2; height: 100%; padding: 20px; }
+    .preview-pane { grid-row: 4; padding: 20px; height: 100%; }
+    .tategumi { height: calc(100% - 40px); }
     header { padding: 16px 20px 12px; }
     h1 { font-size: 13px; }
-    .toolbar {
-      bottom: 12px;
-      right: 12px;
-      gap: 4px;
-      padding: 2px;
-    }
+    .toolbar { bottom: 12px; right: 12px; gap: 4px; padding: 2px; }
     .btn { padding: 4px 8px; font-size: 11px; }
     .btn-size { padding: 4px 6px; min-width: 30px; }
     .size-label { display: none; }
@@ -294,13 +263,11 @@
 </div>
 
 <div class="toolbar">
-  <span class="font-label">フォント</span>
-<button class="btn btn-size" id="btnGothic">ゴシック</button>
-<button class="btn btn-size" id="btnShippori">筆</button>
-<button class="btn btn-size" id="btnKaisei">装飾</button>
-<button class="btn btn-size" id="btnHina">細い</button>
-
-
+  <span class="size-label">フォント</span>
+  <button class="btn btn-size" id="btnGothic">ゴシック</button>
+  <button class="btn btn-size" id="btnShippori">筆</button>
+  <button class="btn btn-size" id="btnKaisei">装飾</button>
+  <button class="btn btn-size" id="btnHina">細い</button>
   <span class="size-label">文字サイズ</span>
   <button class="btn btn-size" id="btnSmall">小</button>
   <button class="btn btn-size" id="btnMedium">中</button>
@@ -313,37 +280,24 @@
 <script>
   const input = document.getElementById('input');
   const preview = document.getElementById('preview');
-  const sizes = { '小': '13px', '中': '15px', '大': '18px', '特大': '24px' };
+  const fullPreview = document.getElementById('fullPreview');
+  const overlay = document.getElementById('fullscreenOverlay');
+  const sizes = { small: '13px', medium: '15px', large: '18px', xlarge: '24px' };
+  let currentSize = sizes.medium;
+  let currentFont = "'Noto Serif JP', serif";
 
-  // 半角→全角変換
-  const toZen = (s) => s.replace(/[0-9]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0))
-                        .replace(/[a-z]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0))
-                        .replace(/[A-Z]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0));
-
-  const symbolMap = {
-    '(': '︵', ')': '︶',
-    '（': '︵', '）': '︶',
-    '[': '﹇', ']': '﹈',
-    '【': '︻', '】': '︼',
-    '﹁': '﹁', '﹂': '﹂',
-    '{': '︷', '}': '︸',
-    '…': '︙',
-    '—': '︱',
-  };
+  // 半角英数→全角変換
+  function toZen(s) {
+    return s.replace(/[A-Za-z0-9]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0));
+  }
 
   function toTategumi(text) {
     if (!text) return '';
-    let s = text
+    return text
       .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;');
-
-    s = s.replace(/[A-Za-z0-9]+/g, m => toZen(m));
-    s = s.replace(/>/g, '＞');
-
-    for (const [from, to] of Object.entries(symbolMap)) {
-      s = s.split(from).join(to);
-    }
-    return s;
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/[A-Za-z0-9]+/g, m => toZen(m));
   }
 
   input.addEventListener('input', () => {
@@ -352,21 +306,30 @@
     preview.classList.toggle('empty', val.trim() === '');
   });
 
-  let currentSize = sizes['中'];
-
   function setSize(size) {
     currentSize = size;
     preview.style.fontSize = size;
     const headerH = document.querySelector('header').offsetHeight;
-    preview.style.height = `calc(100dvh - ${headerH + 60}px)`;
+    preview.style.height = 'calc(100dvh - ' + (headerH + 60) + 'px)';
   }
 
-  setSize(sizes['中']);
+  function setFont(font) {
+    currentFont = font;
+    preview.style.fontFamily = font;
+    fullPreview.style.fontFamily = font;
+  }
 
-  document.getElementById('btnSmall').addEventListener('click', () => setSize(sizes['小']));
-  document.getElementById('btnMedium').addEventListener('click', () => setSize(sizes['中']));
-  document.getElementById('btnLarge').addEventListener('click', () => setSize(sizes['大']));
-  document.getElementById('btnXLarge').addEventListener('click', () => setSize(sizes['特大']));
+  setSize(sizes.medium);
+
+  document.getElementById('btnSmall').addEventListener('click', () => setSize(sizes.small));
+  document.getElementById('btnMedium').addEventListener('click', () => setSize(sizes.medium));
+  document.getElementById('btnLarge').addEventListener('click', () => setSize(sizes.large));
+  document.getElementById('btnXLarge').addEventListener('click', () => setSize(sizes.xlarge));
+
+  document.getElementById('btnGothic').addEventListener('click', () => setFont("'Hiragino Sans', 'Noto Sans JP', sans-serif"));
+  document.getElementById('btnShippori').addEventListener('click', () => setFont("'Shippori Mincho', serif"));
+  document.getElementById('btnKaisei').addEventListener('click', () => setFont("'Kaisei Decol', serif"));
+  document.getElementById('btnHina').addEventListener('click', () => setFont("'Hina Mincho', serif"));
 
   document.getElementById('btnClear').addEventListener('click', () => {
     input.value = '';
@@ -375,15 +338,11 @@
     input.focus();
   });
 
-  // --- 全画面モード ---
-  const overlay = document.getElementById('fullscreenOverlay');
-  const fullPreview = document.getElementById('fullPreview');
-
   document.getElementById('btnFullscreen').addEventListener('click', () => {
     if (input.value.trim() === '') return;
     fullPreview.innerHTML = preview.innerHTML + '<br><br><br><br><br>';
-
     fullPreview.style.fontSize = currentSize;
+    fullPreview.style.fontFamily = currentFont;
     overlay.classList.add('active');
     setTimeout(() => {
       overlay.scrollLeft = overlay.scrollWidth - overlay.clientWidth;
@@ -394,66 +353,31 @@
     overlay.classList.remove('active');
   }
 
-  // PCダブルクリックで閉じる
-  overlay.addEventListener('dblclick', () => {
-    closeFullscreen();
-  });
+  const previewPane = document.getElementById('previewPane');
+  previewPane.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    previewPane.scrollLeft -= e.deltaY;
+  }, { passive: false });
 
-  // iPhoneダブルタップで閉じる
+  overlay.addEventListener('dblclick', closeFullscreen);
+
   let lastTap = 0;
   let touchStartTime = 0;
-
-  overlay.addEventListener('touchstart', (e) => {
-    touchStartTime = new Date().getTime();
-  });
-
+  overlay.addEventListener('touchstart', () => { touchStartTime = Date.now(); });
   overlay.addEventListener('touchend', (e) => {
-    const currentTime = new Date().getTime();
-    const touchDuration = currentTime - touchStartTime;
-
-    if (touchDuration > 150) return;
-
-    const tapLength = currentTime - lastTap;
-
-    if (tapLength < 250 && tapLength > 40) {
-      closeFullscreen();
-      e.preventDefault();
-    }
-    lastTap = currentTime;
+    if (Date.now() - touchStartTime > 150) return;
+    const tapLen = Date.now() - lastTap;
+    if (tapLen < 250 && tapLen > 40) { closeFullscreen(); e.preventDefault(); }
+    lastTap = Date.now();
   });
 
-  // Escキーで閉じる
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeFullscreen();
-  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFullscreen(); });
 
-  // マウスホイールで横スクロール
   overlay.addEventListener('wheel', (e) => {
     if (!overlay.classList.contains('active')) return;
     e.preventDefault();
     overlay.scrollLeft -= e.deltaY;
   }, { passive: false });
-  // フォント切り替え
-    document.getElementById('btnGothic').addEventListener('click', () => {
-    preview.style.fontFamily = "'Noto Sans JP', sans-serif";
-    fullPreview.style.fontFamily = "'Noto Sans JP', sans-serif";
-  });
-
-  document.getElementById('btnShippori').addEventListener('click', () => {
-    preview.style.fontFamily = "'Shippori Mincho', serif";
-    fullPreview.style.fontFamily = "'Shippori Mincho', serif";
-  });
-
-  document.getElementById('btnKaisei').addEventListener('click', () => {
-    preview.style.fontFamily = "'Kaisei Decol', serif";
-    fullPreview.style.fontFamily = "'Kaisei Decol', serif";
-  });
-
-  document.getElementById('btnHina').addEventListener('click', () => {
-    preview.style.fontFamily = "'Hina Mincho', serif";
-    fullPreview.style.fontFamily = "'Hina Mincho', serif";
-  });
-
 </script>
 </body>
 </html>
