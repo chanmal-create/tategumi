@@ -218,6 +218,18 @@
   .preview-pane::-webkit-scrollbar-thumb:hover,
   .fullscreen-overlay::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
+  /* iPhone(iOS Safari)のスクロールバーを非表示 */
+  @supports (-webkit-touch-callout: none) {
+    .preview-pane,
+    .fullscreen-overlay {
+      scrollbar-width: none;
+    }
+    .preview-pane::-webkit-scrollbar,
+    .fullscreen-overlay::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
   @media (max-width: 680px) {
     .layout {
       grid-template-columns: 1fr;
