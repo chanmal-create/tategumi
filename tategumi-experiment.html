@@ -312,13 +312,27 @@
       .replace(/[A-Za-z0-9]+/g, m => toZen(m));
   }
 
-  input.addEventListener('input', () => {
+  // 入力欄の中身を縦書きプレビューに反映する処理を関数化
+  // (通常のペースト入力と、ブックマークレット経由の自動流し込みの両方から呼べるようにする)
+  function renderPreview() {
     const val = input.value;
     preview.innerHTML = toTategumi(val);
     preview.classList.toggle('empty', val.trim() === '');
     requestAnimationFrame(() => {
       previewPane.scrollLeft = previewPane.scrollWidth - previewPane.clientWidth;
     });
+  }
+
+  input.addEventListener('input', renderPreview);
+
+  // ブックマークレットから送られてきたテキストを受け取る
+  // (postMessageで届いた文字列を入力欄にセットし、通常入力と同じ処理を走らせる)
+  window.addEventListener('message', (event) => {
+    if (typeof event.data !== 'string') return;
+    const text = event.data.trim();
+    if (!text) return;
+    input.value = event.data;
+    renderPreview();
   });
 
   function setSize(size) {
