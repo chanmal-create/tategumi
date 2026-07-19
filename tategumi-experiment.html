@@ -15,7 +15,6 @@
     --muted: #9a9690;
     --line: #dedad4;
     --accent: #5a4a3a;
-    --img-h: 180px;
   }
 
   html, body {
@@ -133,13 +132,12 @@
     font-size: 13px;
   }
 
-  /* 記事内の画像。縦書きの1コマとして横向きのまま差し込む */
+  /* 記事内の画像。絵本のように、文章の流れを区切って独立した1本の柱として挟む */
   .tategumi img {
-    height: var(--img-h);
+    display: block;
+    max-height: 320px;
     width: auto;
-    max-width: none;
-    margin: 0 14px;
-    vertical-align: top;
+    margin: 24px 20px;
     border-radius: 2px;
     box-shadow: 0 1px 6px rgba(0,0,0,0.08);
   }
@@ -192,11 +190,10 @@
   }
 
   .tategumi-full img {
-    height: var(--img-h);
+    display: block;
+    max-height: 320px;
     width: auto;
-    max-width: none;
-    margin: 0 14px;
-    vertical-align: top;
+    margin: 24px 20px;
     border-radius: 2px;
     box-shadow: 0 1px 6px rgba(0,0,0,0.08);
   }
@@ -366,11 +363,14 @@
   }
 
   // segments配列(文章と画像が順番通りに並んだデータ)からHTMLを組み立てる
+  // 画像の高さはCSS変数を使わず、ここで直接pxの数値をinline styleとして埋め込む
+  // (CSS変数の"--"はコピペ時に自動変換で壊れることがあるため、あえて使わない)
   function segmentsToHtml(segments) {
+    const h = sizeTable[currentSizeKey].img;
     return segments.map(seg => {
       if (seg.type === 'image') {
         const cls = seg.isVideo ? ' class="yt-thumb"' : '';
-        return '<img' + cls + ' src="' + seg.src.replace(/"/g, '&quot;') + '" alt="">';
+        return '<img' + cls + ' style="height:' + h + ';max-height:' + h + '" src="' + seg.src.replace(/"/g, '&quot;') + '" alt="">';
       }
       return escapeAndZen(seg.content);
     }).join('');
@@ -429,7 +429,6 @@
     const t = sizeTable[currentSizeKey];
     preview.style.fontSize = t.font;
     fullPreview.style.fontSize = t.font;
-    document.documentElement.style.setProperty('--img-h', t.img);
     const headerH = document.querySelector('header').offsetHeight;
     preview.style.height = 'calc(100dvh - ' + (headerH + 60) + 'px)';
   }
@@ -437,6 +436,8 @@
   function setSize(key) {
     currentSizeKey = key;
     applySizeVars();
+    // 画像付き表示中なら、画像サイズも新しいサイズで作り直す
+    if (richSegments) renderPreview();
   }
 
   function setFont(font) {
