@@ -15,6 +15,7 @@
     --muted: #9a9690;
     --line: #dedad4;
     --accent: #5a4a3a;
+    --img-h: 180px;
   }
 
   html, body {
@@ -132,6 +133,34 @@
     font-size: 13px;
   }
 
+  /* 記事内の画像。縦書きの1コマとして横向きのまま差し込む */
+  .tategumi img {
+    height: var(--img-h);
+    width: auto;
+    max-width: none;
+    margin: 0 14px;
+    vertical-align: top;
+    border-radius: 2px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+  }
+
+  .tategumi .yt-thumb {
+    position: relative;
+    display: inline-block;
+  }
+
+  .tategumi .yt-thumb::after {
+    content: '▶';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 22px;
+    text-shadow: 0 0 6px rgba(0,0,0,0.6);
+    pointer-events: none;
+  }
+
   .fullscreen-overlay {
     display: none;
     position: fixed;
@@ -160,6 +189,16 @@
     height: calc(100dvh - 80px);
     white-space: pre-wrap;
     word-break: break-all;
+  }
+
+  .tategumi-full img {
+    height: var(--img-h);
+    width: auto;
+    max-width: none;
+    margin: 0 14px;
+    vertical-align: top;
+    border-radius: 2px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
   }
 
   .toolbar {
@@ -218,7 +257,6 @@
   .preview-pane::-webkit-scrollbar-thumb:hover,
   .fullscreen-overlay::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
-  /* iPhone(iOS Safari)のスクロールバーを非表示 */
   @supports (-webkit-touch-callout: none) {
     .preview-pane,
     .fullscreen-overlay {
@@ -294,16 +332,26 @@
   const previewPane = document.getElementById('previewPane');
   const fullPreview = document.getElementById('fullPreview');
   const overlay = document.getElementById('fullscreenOverlay');
-  const sizes = { small: '13px', medium: '15px', large: '18px', xlarge: '24px' };
-  let currentSize = sizes.medium;
+
+  // 文字サイズと画像サイズをセットで管理(文字を大きくしたら画像も一緒に大きくする)
+  const sizeTable = {
+    small:  { font: '13px', img: '140px' },
+    medium: { font: '15px', img: '180px' },
+    large:  { font: '18px', img: '220px' },
+    xlarge: { font: '24px', img: '280px' }
+  };
+  let currentSizeKey = 'medium';
   let currentFont = "'Noto Serif JP', serif";
 
-  // 半角英数→全角変換
+  // richSegments: ブックマークレット経由で「文章+画像」の順番付きデータが来たときに保持する
+  // (手動でテキストエリアを編集した場合はnullに戻し、通常のテキストのみ表示に切り替える)
+  let richSegments = null;
+
   function toZen(s) {
     return s.replace(/[A-Za-z0-9]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0));
   }
 
-  function toTategumi(text) {
+  function escapeAndZen(text) {
     if (!text) return '';
     return text
       .replace(/&/g, '&amp;')
@@ -312,34 +360,83 @@
       .replace(/[A-Za-z0-9]+/g, m => toZen(m));
   }
 
-  // 入力欄の中身を縦書きプレビューに反映する処理を関数化
-  // (通常のペースト入力と、ブックマークレット経由の自動流し込みの両方から呼べるようにする)
+  // 通常のテキストのみ表示(今まで通りの挙動)
+  function toTategumi(text) {
+    return escapeAndZen(text);
+  }
+
+  // segments配列(文章と画像が順番通りに並んだデータ)からHTMLを組み立てる
+  function segmentsToHtml(segments) {
+    return segments.map(seg => {
+      if (seg.type === 'image') {
+        const cls = seg.isVideo ? ' class="yt-thumb"' : '';
+        return '<img' + cls + ' src="' + seg.src.replace(/"/g, '&quot;') + '" alt="">';
+      }
+      return escapeAndZen(seg.content);
+    }).join('');
+  }
+
   function renderPreview() {
     const val = input.value;
-    preview.innerHTML = toTategumi(val);
-    preview.classList.toggle('empty', val.trim() === '');
+    if (richSegments) {
+      preview.innerHTML = segmentsToHtml(richSegments);
+      preview.classList.toggle('empty', richSegments.length === 0);
+    } else {
+      preview.innerHTML = toTategumi(val);
+      preview.classList.toggle('empty', val.trim() === '');
+    }
     requestAnimationFrame(() => {
       previewPane.scrollLeft = previewPane.scrollWidth - previewPane.clientWidth;
     });
   }
 
-  input.addEventListener('input', renderPreview);
-
-  // ブックマークレットから送られてきたテキストを受け取る
-  // (postMessageで届いた文字列を入力欄にセットし、通常入力と同じ処理を走らせる)
-  window.addEventListener('message', (event) => {
-    if (typeof event.data !== 'string') return;
-    const text = event.data.trim();
-    if (!text) return;
-    input.value = event.data;
+  // ユーザーが手で入力欄をいじったら、画像付き表示はやめて通常のテキスト表示に戻す
+  // (順番情報がズレる可能性があるため)
+  input.addEventListener('input', () => {
+    richSegments = null;
     renderPreview();
   });
 
-  function setSize(size) {
-    currentSize = size;
-    preview.style.fontSize = size;
+  // ブックマークレットから届いたデータを受け取る
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (typeof data !== 'string') return;
+    const trimmed = data.trim();
+    if (!trimmed) return;
+
+    // JSON形式(文章+画像の構造化データ)かどうか試す
+    let parsed = null;
+    try { parsed = JSON.parse(trimmed); } catch (e) { /* JSONでなければ通常テキスト */ }
+
+    if (parsed && parsed.type === 'tategumi-segments' && Array.isArray(parsed.segments)) {
+      richSegments = parsed.segments;
+      // テキストエリア側には画像を除いた文章だけを流し込み、手動編集の起点にする
+      input.value = parsed.segments
+        .filter(s => s.type === 'text')
+        .map(s => s.content)
+        .join('\n\n');
+      renderPreview();
+      return;
+    }
+
+    // 従来通りのプレーンテキスト受信
+    richSegments = null;
+    input.value = data;
+    renderPreview();
+  });
+
+  function applySizeVars() {
+    const t = sizeTable[currentSizeKey];
+    preview.style.fontSize = t.font;
+    fullPreview.style.fontSize = t.font;
+    document.documentElement.style.setProperty('--img-h', t.img);
     const headerH = document.querySelector('header').offsetHeight;
     preview.style.height = 'calc(100dvh - ' + (headerH + 60) + 'px)';
+  }
+
+  function setSize(key) {
+    currentSizeKey = key;
+    applySizeVars();
   }
 
   function setFont(font) {
@@ -348,12 +445,12 @@
     fullPreview.style.fontFamily = font;
   }
 
-  setSize(sizes.medium);
+  applySizeVars();
 
-  document.getElementById('btnSmall').addEventListener('click', () => setSize(sizes.small));
-  document.getElementById('btnMedium').addEventListener('click', () => setSize(sizes.medium));
-  document.getElementById('btnLarge').addEventListener('click', () => setSize(sizes.large));
-  document.getElementById('btnXLarge').addEventListener('click', () => setSize(sizes.xlarge));
+  document.getElementById('btnSmall').addEventListener('click', () => setSize('small'));
+  document.getElementById('btnMedium').addEventListener('click', () => setSize('medium'));
+  document.getElementById('btnLarge').addEventListener('click', () => setSize('large'));
+  document.getElementById('btnXLarge').addEventListener('click', () => setSize('xlarge'));
 
   document.getElementById('btnGothic').addEventListener('click', () => setFont("'Hiragino Sans', 'Noto Sans JP', sans-serif"));
   document.getElementById('btnShippori').addEventListener('click', () => setFont("'Shippori Mincho', serif"));
@@ -362,15 +459,15 @@
 
   document.getElementById('btnClear').addEventListener('click', () => {
     input.value = '';
+    richSegments = null;
     preview.innerHTML = '';
     preview.classList.add('empty');
     input.focus();
   });
 
   document.getElementById('btnFullscreen').addEventListener('click', () => {
-    if (input.value.trim() === '') return;
+    if (input.value.trim() === '' && !richSegments) return;
     fullPreview.innerHTML = preview.innerHTML + '<br><br><br><br><br>';
-    fullPreview.style.fontSize = currentSize;
     fullPreview.style.fontFamily = currentFont;
     overlay.classList.add('active');
     setTimeout(() => {
