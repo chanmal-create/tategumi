@@ -365,14 +365,20 @@
 
   // segments配列(文章と画像が順番通りに並んだデータ)からHTMLを組み立てる
   // 画像のサイズはCSS側で em(文字サイズに連動する単位)指定にしているので、ここでは高さを直接指定しない
+  // 文章の段落同士の間には改行を入れて、手動コピペと同じように余白ができるようにする
   function segmentsToHtml(segments) {
-    return segments.map(seg => {
+    let html = '';
+    segments.forEach((seg, i) => {
       if (seg.type === 'image') {
         const cls = seg.isVideo ? ' class="yt-thumb"' : '';
-        return '<img' + cls + ' src="' + seg.src.replace(/"/g, '&quot;') + '" alt="">';
+        html += '<img' + cls + ' src="' + seg.src.replace(/"/g, '&quot;') + '" alt="">';
+      } else {
+        html += escapeAndZen(seg.content);
+        const next = segments[i + 1];
+        if (next && next.type === 'text') html += '\n\n';
       }
-      return escapeAndZen(seg.content);
-    }).join('');
+    });
+    return html;
   }
 
   function renderPreview() {
