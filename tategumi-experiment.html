@@ -133,9 +133,10 @@
   }
 
   /* 記事内の画像。絵本のように、文章の流れを区切って独立した1本の柱として挟む */
+  /* max-heightをem指定にすることで、文字サイズが変わると画像サイズも自動で連動して比例する */
   .tategumi img {
     display: block;
-    max-height: 320px;
+    max-height: 12em;
     width: auto;
     margin: 24px 20px;
     border-radius: 2px;
@@ -191,7 +192,7 @@
 
   .tategumi-full img {
     display: block;
-    max-height: 320px;
+    max-height: 12em;
     width: auto;
     margin: 24px 20px;
     border-radius: 2px;
@@ -363,14 +364,12 @@
   }
 
   // segments配列(文章と画像が順番通りに並んだデータ)からHTMLを組み立てる
-  // 画像の高さはCSS変数を使わず、ここで直接pxの数値をinline styleとして埋め込む
-  // (CSS変数の"--"はコピペ時に自動変換で壊れることがあるため、あえて使わない)
+  // 画像のサイズはCSS側で em(文字サイズに連動する単位)指定にしているので、ここでは高さを直接指定しない
   function segmentsToHtml(segments) {
-    const h = sizeTable[currentSizeKey].img;
     return segments.map(seg => {
       if (seg.type === 'image') {
         const cls = seg.isVideo ? ' class="yt-thumb"' : '';
-        return '<img' + cls + ' style="height:' + h + ';max-height:' + h + '" src="' + seg.src.replace(/"/g, '&quot;') + '" alt="">';
+        return '<img' + cls + ' src="' + seg.src.replace(/"/g, '&quot;') + '" alt="">';
       }
       return escapeAndZen(seg.content);
     }).join('');
